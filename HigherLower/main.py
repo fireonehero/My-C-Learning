@@ -9,9 +9,7 @@ bool start = true;
 int attemptCount = 0;
 
 int pickRandomWin() {
-    srand(time(0));
-    int correctNumber = rand() % 101;
-    return correctNumber;
+    return rand() % 100 + 1;
 }
 
 void playAgain () {
@@ -44,6 +42,7 @@ void playAgain () {
 }
 
 int main() {
+    std::srand(std::time(nullptr));
     int userGuess = 1;
     int correctNumber;
 
@@ -64,14 +63,15 @@ int main() {
             std::cin >> userGuess;
         }
 
-        if (userGuess < correctNumber) {
-            std::cout << "Your guess is too low, try again. " << std::endl;;
+        if(userGuess < 0 || userGuess > 100) {
+            std::cout << "Guess must be between 1 and 100.\n";
+            continue;
+        } else if (userGuess < correctNumber) {
+            std::cout << "Too low! Attempts so far: " << attemptCount << std::endl;;
             attemptCount += 1;
-            std::cout << "Current attempt count: " << attemptCount << std::endl;
         } else if (userGuess > correctNumber) {
-            std::cout << "Your guess is too high, try again. " << std::endl;
+            std::cout << "Too high! Attempts so far: " << attemptCount << std::endl;
             attemptCount += 1;
-            std::cout << "Current attempt count: " << attemptCount << std::endl;
         } else {
             std::cout << "You got it correct! You got it in " << attemptCount << " guesses!" << std::endl;
             playAgain();
