@@ -3,8 +3,8 @@
 #include <vector>
 #include <limits>
 #include <string>
-#include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 struct Student {
     std::string name;
@@ -13,43 +13,60 @@ struct Student {
 
 std::string gradeFile = "grades.txt";
 
-bool isFileEmpty(const std::string& filename) {
-    std::ifstream file(filename);
-    return file.peek() == std::ifstream::traits_type::eof();
+std::string trim(const std::string& s){
+    size_t start = s.find_first_not_of(" \t");
+    size_t end = s.find_last_not_of(" \t");
+    if(start == std::string::npos){
+        return "";
+    }else {
+        return s.substr(start, end - start + 1);
+    }
 }
 
 void loadData(std::vector<Student>& roster) {
-    std::string line;
     std::ifstream in(gradeFile);
-
-    while(std::getline(in, line)){
-
-        int commaPos = line.find(",");
-
-        std::string name = line.substr(0, commaPos);
-
-        std::string score = line.substr(commaPos + 1);
-        double nscore = std::stod(score);
-
-        Student newStudent{name, nscore};
-        roster.push_back(newStudent);
+    if (!in.is_open()) {
+        std::cerr << "Error: could not open " << gradeFile << "\n";
+        return;
     }
 
-}
+    std::string line;
+    while (std::getline(in, line)) {
+        auto commaPos = line.rfind(',');
+        if (commaPos == std::string::npos) {
+            std::cerr << "Skipping malformed line: " << line << "\n";
+            continue;
+        }
 
-bool saveAndQuit(std::vector<Student>& roster) {
-    std::ifstream in(gradeFile);
-    if(!in){
-        std::ofstream out(gradeFile);
-        out.close();
+        auto rawName = line.substr(0, commaPos);
+        auto rawScoreStr = line.substr(commaPos + 1);
+        auto name = trim(rawName);
+        auto scoreStr = trim(rawScoreStr);
 
-        in.open(gradeFile);
-        if(!in) {
-            std::cout << "Still unable to open grades.txt\n";
+        if (!name.empty() && name.front() == '"' && name.back() == '"') {
+            name = name.substr(1, name.size() - 2);
+        }
+
+        name = trim(name);
+        scoreStr = trim(scoreStr);
+
+        try {
+            double score = std::stod(scoreStr);
+            roster.push_back({ name, score });
+        } catch (const std::invalid_argument&) {
+            std::cerr << "Invalid score for " << name << ": " << scoreStr << "\n";
         }
     }
+}
 
-    std::ofstream out(gradeFile, std::ios::out | std::ios::trunc);
+bool saveAndQuit(const std::vector<Student>& roster) {
+    std::ofstream out(gradeFile);
+
+    if (!out) {
+        std::cerr << "Failed to open " << gradeFile << " for writing!\n";
+        return false;
+      }
+      
     for(const auto& students : roster) {
         out << students.name << "," << students.score << std::endl;
     }
@@ -70,67 +87,81 @@ void addStudent(std::vector<Student>& roster) {
     std::getline(std::cin, name);
 
     std::cout << "Enter student grade: ";
-    std::cin >> grade;
+
+    while (! (std::cin >> grade) || grade < 0.0 || grade > 100.0) {
+        std::cout << "Please enter a grade from 0 to 100: ";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }      
 
     Student newStudent{name, grade};
     roster.push_back(newStudent);
 }
 
-int removeStudent() {
-    return 0;
+void removeStudent(std::vector<Student>& roster) {
+    std::string studentName;
+
+    std::cout << "Enter name of student to remove: ";
+    std::cin >> studentName;
+
+    auto studentPos = std::find_if(roster.begin(), roster.end(), [&](const Student& s){ return s.name == studentName; });
+    if (studentPos != roster.end()) {
+        roster.erase(studentPos);
+    } else {
+        std::cout << "No student named " << studentName << " found.\n";
+    }
+
+
 }
 
-void listStudents(std::vector<Student>& roster) {
-    std::ifstream in(gradeFile);
-
-    if(!in) {
-        std::ofstream out(gradeFile);
-        out.close();
-
-        in.open(gradeFile);
-        if(!in) {
-            std::cout << "Still unable to open grades.txt\n";
-        }
-    }
-
-    if (isFileEmpty(gradeFile)){
-        std::cout << "Student list is currently empty" << std::endl;
-    }
+void listStudents(const std::vector<Student>& roster) {
+    if (roster.empty()) {
+        std::cout << "No students in the grade book.\n";
+        return;
+    }      
 
     for(const auto& students : roster) {
         std::cout << students.name << "," << students.score << std::endl;
     }
-
-    in.close();
 }
 
-void averageGrade(std::vector<Student>& roster) {
+void averageGrade(const std::vector<Student>& roster) {
     int count = 0;
     double nscore = 0;
+
+    if (roster.empty()) {
+        std::cout << "No students in the grade book.\n";
+        return;
+      }
 
     for(const auto& students : roster) {
         nscore += students.score;
         count += 1;
     }
 
-    std::cout << std::fixed << std::setprecision(2);
     std::cout << "Average of all grades is: " << nscore / count << std::endl;
 }
 
-void minMaxGrades(std::vector<Student>& roster) {
-    std::string minName;
-    std::string maxName;
-    double minScore = roster[0].score;
-    double maxScore = roster[0].score;
+void minMaxGrades(const std::vector<Student>& roster) {
+    if (roster.empty()) {
+        std::cout << "No students in the grade book.\n";
+        return;
+    }   
 
-    for(const auto& students : roster) {
-        int current = students.score;
-        if(current <= minScore){
-            minName = students.name;
-            minScore = students.score;
-        } else if(current >= maxScore) {
-            maxName = students.name;
-            maxScore = students.score;
+    double minScore = roster[0].score;
+    std::string minName  = roster[0].name;
+    double maxScore = roster[0].score;
+    std::string maxName  = roster[0].name;
+
+    for(const auto& student : roster) {
+        double current = student.score;
+        if(current < minScore){
+            minName = student.name;
+            minScore = student.score;
+        } 
+        if(current > maxScore) {
+            maxName = student.name;
+            maxScore = student.score;
         }
     }
     std::cout << "Student with lowest score: " << minName << ", " << minScore << std::endl;
@@ -149,6 +180,7 @@ void menu() {
 
 
 int main() {
+    std::cout << std::fixed << std::setprecision(2);
     int userChoice;
     bool running = true;
 
@@ -174,7 +206,7 @@ int main() {
                 addStudent(roster); 
                 break;
             case(2):
-                return 0;
+                removeStudent(roster);
                 break;
             case(3):
                 listStudents(roster);
@@ -190,7 +222,6 @@ int main() {
         }
 
     }
-
 
     return 0;
 }
