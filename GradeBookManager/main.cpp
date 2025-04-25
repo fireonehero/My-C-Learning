@@ -24,11 +24,7 @@ Traverse to find the lowest.
 Student findMax(const vector<Student>&)
 Traverse to find the highest.
 
-
-
 */
-
-
 
 
 #include <iostream>
@@ -42,22 +38,26 @@ struct Student {
     double score;
 };
 
-bool saveAndQuit(std::vector<Student>& roster) {
-    std::string name;
-    double grade;
+std::string gradeFile = "grades.txt";
 
-    std::ifstream in("grades.txt");
+bool isFileEmpty(const std::string& filename) {
+    std::ifstream file(filename);
+    return file.peek() == std::ifstream::traits_type::eof();
+}
+
+bool saveAndQuit(std::vector<Student>& roster) {
+    std::ifstream in(gradeFile);
     if(!in){
-        std::ofstream out("grades.txt");
+        std::ofstream out(gradeFile);
         out.close();
 
-        in.open("grades.txt");
+        in.open(gradeFile);
         if(!in) {
             std::cout << "Still unable to open grades.txt\n";
         }
     }
 
-    std::ofstream out("grades.txt");
+    std::ofstream out(gradeFile, std::ios::out | std::ios::app);
     for(const auto& students : roster) {
         out << students.name << "," << students.score << std::endl;
     }
@@ -82,6 +82,34 @@ void addStudent(std::vector<Student>& roster) {
 
     Student newStudent{name, grade};
     roster.push_back(newStudent);
+}
+
+int removeStudent() {
+    return 0;
+}
+
+void listStudents(std::vector<Student>& roster) {
+    std::string line;
+    std::ifstream in(gradeFile);
+    if(!in) {
+        std::ofstream out(gradeFile);
+        out.close();
+
+        in.open(gradeFile);
+        if(!in) {
+            std::cout << "Still unable to open grades.txt\n";
+        }
+    }
+
+    if (isFileEmpty(gradeFile)){
+        std::cout << "Student list is currently empty" << std::endl;
+    }
+
+    while(std::getline(in, line)){
+        
+    }
+
+    in.close();
 }
 
 
@@ -117,7 +145,7 @@ int main() {
                 return 0;
                 break;
             case(3):
-                return 0;
+                listStudents(roster);
                 break;
             case(4):
                 return 0;
@@ -128,8 +156,6 @@ int main() {
             case(6):
                 running = saveAndQuit(roster);
         }
-
-
 
     }
 
