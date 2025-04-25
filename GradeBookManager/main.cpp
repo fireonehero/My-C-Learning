@@ -1,37 +1,10 @@
-/*
-########## TO DO ##########
-
-1.) Add menu input
-2.) Learn how to read, write, and remove from files
-3.) Implement functions
-
-void addStudent(vector<Student>&)
-Prompt for name & score, validate score (0–100), then push_back.
-
-void listStudents(const vector<Student>&)
-Print a table of all entries, e.g.
-
-Name           Score
-Alice          92.5
-Bob            78.0
-
-double average(const vector<Student>&)
-Sum all scores ÷ count.
-
-Student findMin(const vector<Student>&)
-Traverse to find the lowest.
-
-Student findMax(const vector<Student>&)
-Traverse to find the highest.
-
-*/
-
-
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <limits>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 struct Student {
     std::string name;
@@ -43,6 +16,25 @@ std::string gradeFile = "grades.txt";
 bool isFileEmpty(const std::string& filename) {
     std::ifstream file(filename);
     return file.peek() == std::ifstream::traits_type::eof();
+}
+
+void loadData(std::vector<Student>& roster) {
+    std::string line;
+    std::ifstream in(gradeFile);
+
+    while(std::getline(in, line)){
+
+        int commaPos = line.find(",");
+
+        std::string name = line.substr(0, commaPos);
+
+        std::string score = line.substr(commaPos + 1);
+        double nscore = std::stod(score);
+
+        Student newStudent{name, nscore};
+        roster.push_back(newStudent);
+    }
+
 }
 
 bool saveAndQuit(std::vector<Student>& roster) {
@@ -57,7 +49,7 @@ bool saveAndQuit(std::vector<Student>& roster) {
         }
     }
 
-    std::ofstream out(gradeFile, std::ios::out | std::ios::app);
+    std::ofstream out(gradeFile, std::ios::out | std::ios::trunc);
     for(const auto& students : roster) {
         out << students.name << "," << students.score << std::endl;
     }
@@ -89,8 +81,8 @@ int removeStudent() {
 }
 
 void listStudents(std::vector<Student>& roster) {
-    std::string line;
     std::ifstream in(gradeFile);
+
     if(!in) {
         std::ofstream out(gradeFile);
         out.close();
@@ -105,13 +97,45 @@ void listStudents(std::vector<Student>& roster) {
         std::cout << "Student list is currently empty" << std::endl;
     }
 
-    while(std::getline(in, line)){
-        
+    for(const auto& students : roster) {
+        std::cout << students.name << "," << students.score << std::endl;
     }
 
     in.close();
 }
 
+void averageGrade(std::vector<Student>& roster) {
+    int count = 0;
+    double nscore = 0;
+
+    for(const auto& students : roster) {
+        nscore += students.score;
+        count += 1;
+    }
+
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "Average of all grades is: " << nscore / count << std::endl;
+}
+
+void minMaxGrades(std::vector<Student>& roster) {
+    std::string minName;
+    std::string maxName;
+    double minScore = roster[0].score;
+    double maxScore = roster[0].score;
+
+    for(const auto& students : roster) {
+        int current = students.score;
+        if(current <= minScore){
+            minName = students.name;
+            minScore = students.score;
+        } else if(current >= maxScore) {
+            maxName = students.name;
+            maxScore = students.score;
+        }
+    }
+    std::cout << "Student with lowest score: " << minName << ", " << minScore << std::endl;
+    std::cout << "Student with highest score: " << maxName << ", " << maxScore << std::endl;
+}
 
 void menu() {
     std::cout << "###Choose Action###" << std::endl;
@@ -129,6 +153,7 @@ int main() {
     bool running = true;
 
     std::vector<Student> roster;
+    loadData(roster);
 
     while(running) {
 
@@ -136,6 +161,13 @@ int main() {
 
         std::cout << "Enter choice: ";
         std::cin >> userChoice;
+
+        while (userChoice < 1 || userChoice > 6){
+            std::cout << "Please only enter a number from 1 to 6: ";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cin >> userChoice;
+        }
     
         switch(userChoice) {
             case(1):
@@ -148,10 +180,10 @@ int main() {
                 listStudents(roster);
                 break;
             case(4):
-                return 0;
+                averageGrade(roster);
                 break;
             case(5):
-                return 0;
+                minMaxGrades(roster);
                 break;
             case(6):
                 running = saveAndQuit(roster);
