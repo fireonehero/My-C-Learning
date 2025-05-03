@@ -6,27 +6,23 @@ class BankAccount {
     private:
         double balance;
 
-    public:void deposit(double amount);
-        BankAccount(double initalBalance = 0.0) : balance(initalBalance) {
+    public:void deposit(double amount){
+        balance = balance + amount;
+        std::cout << "New account amount: " << balance << std::endl;
+    }
+    BankAccount(double initalBalance = 0.0) : balance(initalBalance) {}
 
-        }
-
-    void deposit(double amount);
     bool withdraw(double amount);
     double getBalance() const;
 
 };
 
-void BankAccount::deposit(double amount) {
-    // Enter thy holy code here
-}
-
 bool BankAccount::withdraw(double amount) {
-    // Enter thy sinful code here
+    return true;
 }
 
 double BankAccount::getBalance() const {
-
+    return 0;
 }
 
 void menu() {
@@ -40,10 +36,11 @@ void menu() {
 
 int main() {
     std::cout << std::fixed << std::setprecision(2);
-    BankAccount myObj;
+    BankAccount bank;
 
     bool running = true;
     int userChoice;
+    double amount;
 
     while(running){
 
@@ -53,7 +50,7 @@ int main() {
         std::cin >> userChoice;
 
         while(userChoice < 1 || userChoice > 5){
-            std::cout << "Please only enter a number from 1 to 6: ";
+            std::cout << "Please only enter a number from 1 to 5: ";
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             std::cin >> userChoice;
@@ -61,7 +58,9 @@ int main() {
 
         switch(userChoice){
             case(1):
-                return 0;
+                std::cout << "Enter amount to deposit: ";
+                std::cin >> amount;
+                bank.deposit(amount);
                 break;
             case(2):
                 return 0;
