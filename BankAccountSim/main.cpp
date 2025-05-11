@@ -1,6 +1,61 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <fstream>
+#include <vector>
+
+struct AccountHistory {
+    std::string action;
+    double amount;
+    double newBalance;
+}
+
+
+std::string accountFile = "accountfile.txt";
+
+void loadData(std::vector<double>& history){
+    std::ifstream in(accountFile);
+    if (!in.is_open()){
+        std::cerr << "Error: could not open " << accountFile << "\n";
+        return;
+    }
+
+    std::string line;
+    while(std::getline(in, line)){
+
+    }
+}
+
+/*
+        auto commaPos = line.rfind(',');
+        if (commaPos == std::string::npos) {
+            std::cerr << "Skipping malformed line: " << line << "\n";
+            continue;
+        }
+
+        auto rawName = line.substr(0, commaPos);
+        auto rawScoreStr = line.substr(commaPos + 1);
+        auto name = trim(rawName);
+        auto scoreStr = trim(rawScoreStr);
+
+        if (!name.empty() && name.front() == '"' && name.back() == '"') {
+            name = name.substr(1, name.size() - 2);
+        }
+
+        name = trim(name);
+        scoreStr = trim(scoreStr);
+
+        try {
+            double score = std::stod(scoreStr);
+            roster.push_back({ name, score });
+        } catch (const std::invalid_argument&) {
+            std::cerr << "Invalid score for " << name << ": " << scoreStr << "\n";
+        }
+    }
+}
+*/
+
+
 
 class BankAccount {
     private:
@@ -12,18 +67,22 @@ class BankAccount {
     }
     BankAccount(double initalBalance = 0.0) : balance(initalBalance) {}
 
-    bool withdraw(double amount);
-    double getBalance() const;
+    bool withdraw(double amount){
+        if (balance - amount < 0){
+            std::cout << "Error: too little balance. ";
+            return false;
+        } else {
+            balance = balance - amount;
+            std::cout << "New account balance: " << balance << std::endl;
+            return true;
+        }
+    }
+
+    double getBalance() const {
+        return balance;
+    }
 
 };
-
-bool BankAccount::withdraw(double amount) {
-    return true;
-}
-
-double BankAccount::getBalance() const {
-    return 0;
-}
 
 void menu() {
     std::cout << "###Choose Action###" << std::endl;
@@ -37,6 +96,7 @@ void menu() {
 int main() {
     std::cout << std::fixed << std::setprecision(2);
     BankAccount bank;
+    std::vector<AccountHistory> history;
 
     bool running = true;
     int userChoice;
@@ -61,12 +121,15 @@ int main() {
                 std::cout << "Enter amount to deposit: ";
                 std::cin >> amount;
                 bank.deposit(amount);
+                history.push_back();
                 break;
             case(2):
-                return 0;
+                std::cout << "Enter amount to withdraw: ";
+                std::cin >> amount;
+                bank.withdraw(amount);
                 break;
             case(3):
-                return 0;
+                std::cout << "Current Balance: " << bank.getBalance() << std::endl;
                 break;
             case(4):
                 return 0;
