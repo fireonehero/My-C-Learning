@@ -3,13 +3,14 @@
 #include <limits>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 struct AccountHistory {
     std::string action;
     double amount;
     double newBalance;
 }
-
 
 std::string accountFile = "accountfile.txt";
 
