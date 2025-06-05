@@ -59,40 +59,34 @@ std::vector<Contact> searchContact(const std::vector<Contact>& contactBook){
     int userSearchPick;
     std::vector<Contact> searchResults;
 
-    std::cout << "Enter 1 for name seach. Enter 2 for phone number search. Enter 3 for email search: ";
+    std::cout << "Enter 1 for name search. \nEnter 2 for phone number search. \nEnter 3 for email search: ";
     std::cin >> userSearchPick;
+    std::cin.ignore();
 
     switch(userSearchPick){
         case 1:
             std::cout << "Enter name to search: ";
             std::getline(std::cin, nameSearch);
             std::copy_if(contactBook.begin(), contactBook.end(), std::back_inserter(searchResults), [&nameSearch](const Contact& c){return c.Name.find(nameSearch) != std::string::npos;});
-
             return searchResults;
         case 2:
             std::cout << "Enter phone number to search: ";
             std::getline(std::cin, phoneSearch);
             std::copy_if(contactBook.begin(), contactBook.end(), std::back_inserter(searchResults), [&phoneSearch](const Contact& c){return c.Phone.find(phoneSearch) != std::string::npos;});
-
             return searchResults;
-
         case 3:
             std::cout << "Enter email to search: ";
             std::getline(std::cin, emailSearch);
             std::copy_if(contactBook.begin(), contactBook.end(), std::back_inserter(searchResults), [&emailSearch](const Contact& c){return c.Email.find(emailSearch) != std::string::npos;});
-
             return searchResults;
-
         default:
             std::cout << "Invalid input. Please pick a number 1 - 3: ";
+            return searchResults;
     }
-    
 }
 
+
 bool saveAndQuit(){
-
-
-
 
     return false;
 }
@@ -153,7 +147,10 @@ int main(){
                 running = saveAndQuit();
                 break;
             default:
-                std::cout << "Error: Invalid choice. Please enter a number from 1 to 5.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Error: Invalid choice. Please enter a number from 1 to 5.";
+
         }
     }
 
