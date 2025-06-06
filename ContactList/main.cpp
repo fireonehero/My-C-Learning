@@ -15,6 +15,7 @@ struct Contact {
 std::string contactFile = "contacts.txt";
 
 void addContact(std::vector<Contact>& contactBook){
+    std::cout << "\x1B[2J\x1B[H";
     std::string fullName;
     std::string phoneNumber;
     std::string email;
@@ -33,33 +34,49 @@ void addContact(std::vector<Contact>& contactBook){
 }
 
 void deleteContact(std::vector<Contact>& contactBook){
-    std::string name;
+    std::cout << "\x1B[2J\x1B[H";
+    std::string personName;
 
+    std::cout << "Enter name of person to remove: ";
+    std::cin >> personName;
+
+    auto namePos = std::find_if(contactBook.begin(), contactBook.end(), [&](const Contact& s){return s.Name == personName; });
+    if(namePos != contactBook.end()){
+        contactBook.erase(namePos);
+    } else {
+        std::cout << "Error: No person named: " << personName << " found.\n";
+    }
 
 }
 
 void listContact(std::vector<Contact>& contactBook){
+    std::cout << "\x1B[2J\x1B[H";
     std::string name;
 
     if(contactBook.empty()){
         std::cout << "No contacts in your address book.\n";
         return;
+    }else {
+        std::cout << "─────────────────────────────────────────────\n";
+        std::cout << " Name                 │ Phone      │ Email\n";
+        std::cout << "─────────────────────────────────────────────\n";
+        for(const auto& contacts : contactBook){
+            std::cout << std::left << " " << std::setw(20) << contacts.Name << " │ " << std::setw(10) << contacts.Phone << " │ " << std::setw(24) << contacts.Email << "\n";
+        }
+        std::cout << "─────────────────────────────────────────────\n";
     }
-
-    for(const auto& contacts : contactBook){
-        std::cout << contacts.Name << "," << contacts.Phone << "," << contacts.Email << std::endl;
-    }
-
 }
 
 std::vector<Contact> searchContact(const std::vector<Contact>& contactBook){
+    std::cout << "\x1B[2J\x1B[H";
     std::string nameSearch;
     std::string phoneSearch;
     std::string emailSearch;
     int userSearchPick;
     std::vector<Contact> searchResults;
 
-    std::cout << "Enter 1 for name search. \nEnter 2 for phone number search. \nEnter 3 for email search: ";
+    std::cout << "Enter 1 for name search. \nEnter 2 for phone number search. \nEnter 3 for email search.\n";
+    std::cout << "Choice: ";
     std::cin >> userSearchPick;
     std::cin.ignore();
 
@@ -85,6 +102,9 @@ std::vector<Contact> searchContact(const std::vector<Contact>& contactBook){
     }
 }
 
+void loadData(){
+
+}
 
 bool saveAndQuit(){
 
