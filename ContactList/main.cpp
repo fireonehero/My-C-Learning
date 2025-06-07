@@ -5,6 +5,7 @@
 #include <limits>
 #include <algorithm>
 #include <iomanip>
+#include <filesystem>
 
 struct Contact {
     std::string Name;
@@ -14,8 +15,12 @@ struct Contact {
 
 std::string contactFile = "contacts.txt";
 
-void addContact(std::vector<Contact>& contactBook){
+void clearScreen(){
     std::cout << "\x1B[2J\x1B[H";
+}
+
+void addContact(std::vector<Contact>& contactBook){
+    clearScreen();
     std::string fullName;
     std::string phoneNumber;
     std::string email;
@@ -34,27 +39,65 @@ void addContact(std::vector<Contact>& contactBook){
 }
 
 void deleteContact(std::vector<Contact>& contactBook){
-    std::cout << "\x1B[2J\x1B[H";
-    std::string personName;
+    clearScreen();
+    std::string nameInput;
+    std::vector<size_t> matches;
 
-    std::cout << "Enter name of person to remove: ";
-    std::cin >> personName;
+    std::cout << "Enter name (or part of name) to delete: ";
+    std::getline(std::cin, nameInput);
 
-    auto namePos = std::find_if(contactBook.begin(), contactBook.end(), [&](const Contact& s){return s.Name == personName; });
-    if(namePos != contactBook.end()){
-        contactBook.erase(namePos);
-    } else {
-        std::cout << "Error: No person named: " << personName << " found.\n";
+    for(size_t i = 0; i < contactBook.size(); ++i){
+        if(contactBook[i].Name.find(nameInput) != std::string::npos){
+            matches.push_back(i);
+        }
     }
 
+    if(matches.empty()) {
+        std::cout << "No contacts found matching " << nameInput << ".\n";
+        return;
+    }
+
+    if (matches.size() == 1){
+        size_t idx = matches[0];
+
+        std::string deletedName = contactBook[idx].Name;
+        std::string deletedPhone = contactBook[idx].Phone;
+        std::string deletedEmail = contactBook[idx].Email;
+
+        contactBook.erase(contactBook.begin() + idx);
+        std::cout << "Deleted: " << deletedName << " | " << deletedPhone << " | " << deletedEmail << "\n";
+        return;
+    } 
+
+    std::cout << "Multiple Matches Found\n";
+    for(size_t k = 0; k < matches.size(); ++k){
+        const auto& c = contactBook[matches[k]];
+        std::cout << (k+1) << ")" << c.Name << " | " << c.Phone << " | " << c.Email << "\n";
+    }
+
+    int choice = 0;
+    while(true) {
+        std::cout << "Enter the number to delete (1-" << matches.size() << "): ";
+        if(std::cin >> choice && choice >= 1 && choice <= (int)matches.size()){
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            size_t toRemove = matches[choice-1];
+            contactBook.erase(contactBook.begin() + toRemove);
+            break;
+        } else {
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Enter the number to delete (1-" << matches.size() << "): ";
+        }
+    }
 }
 
 void listContact(std::vector<Contact>& contactBook){
-    std::cout << "\x1B[2J\x1B[H";
+    clearScreen();
     std::string name;
 
     if(contactBook.empty()){
+        std::cout << "─────────────────────────────────────────────\n";
         std::cout << "No contacts in your address book.\n";
+        std::cout << "─────────────────────────────────────────────\n";
         return;
     }else {
         std::cout << "─────────────────────────────────────────────\n";
@@ -68,7 +111,7 @@ void listContact(std::vector<Contact>& contactBook){
 }
 
 std::vector<Contact> searchContact(const std::vector<Contact>& contactBook){
-    std::cout << "\x1B[2J\x1B[H";
+    clearScreen();
     std::string nameSearch;
     std::string phoneSearch;
     std::string emailSearch;
@@ -78,7 +121,7 @@ std::vector<Contact> searchContact(const std::vector<Contact>& contactBook){
     std::cout << "Enter 1 for name search. \nEnter 2 for phone number search. \nEnter 3 for email search.\n";
     std::cout << "Choice: ";
     std::cin >> userSearchPick;
-    std::cin.ignore();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     switch(userSearchPick){
         case 1:
@@ -102,12 +145,60 @@ std::vector<Contact> searchContact(const std::vector<Contact>& contactBook){
     }
 }
 
-void loadData(){
-
+void loadData(std::vector<Contact>& contactBook){
+    namespace fs = std::filesystem;
+    if(!fs::exists(contactFile)){
+        std::ofstream out("contacts.txt");
+        out.close();
+    } else {
+        std::ifstream in(contactFile);
+        if(!in) {
+            std::cerr << "Error: Could not open " << contactFile << "\n";
+        }
+        std::string line;
+    
+        while(std::getline(in, line)){
+            size_t firstComma = line.find(',');
+            size_t secondComma = line.find(',', firstComma + 1);
+            
+            if(firstComma == std::string::npos){
+                std::cerr << "Skipping malformed line: " << line << "\n";
+                continue;
+            }
+    
+            if(secondComma == std::string::npos){
+                std::cerr << "Skipping malformed line: " << line << "\n";
+                continue;
+            }
+    
+            size_t phoneStart = firstComma + 1;
+            size_t phoneLength = secondComma- phoneStart;
+            
+            
+            std::string name = line.substr(0, firstComma);
+            std::string phone = line.substr(phoneStart, phoneLength);
+            std::string email = line.substr(secondComma + 1);
+    
+            contactBook.push_back({name, phone, email});
+        }
+    }
 }
 
-bool saveAndQuit(){
+bool saveAndQuit(const std::vector<Contact>& contactBook){
+    std::ofstream out(contactFile);
 
+    if(!out){
+        std::cerr << "Error: Failed to open " << contactFile << " for writing!\n";
+        return false;
+    }
+
+    for(const auto& contacts : contactBook){
+        out << contacts.Name << "," << contacts.Phone << "," << contacts.Email << std::endl;
+    }
+
+    out.close();
+
+    std::cout << "Goodbye.";
     return false;
 }
 
@@ -126,6 +217,7 @@ int main(){
     int userChoice;
     bool running = true;
     std::vector<Contact> contactBook;
+    loadData(contactBook);
 
     while (running) {
 
@@ -164,13 +256,12 @@ int main(){
                     break;
                 }
             case 5:
-                running = saveAndQuit();
+                running = saveAndQuit(contactBook);
                 break;
             default:
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "Error: Invalid choice. Please enter a number from 1 to 5.";
-
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Error: Invalid choice. Please enter a number from 1 to 5.\n";
         }
     }
 
