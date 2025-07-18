@@ -1,6 +1,9 @@
-
 #ifndef HUFFMAN_TREE_HPP
 #define HUFFMAN_TREE_HPP
+
+#include <queue>
+#include <map>
+#include <string>
 
 struct Node {
     char character_value;
@@ -25,7 +28,15 @@ struct Node {
 };
 
 struct CompareNode {
-
+    bool operator()(Node* a, Node* b) {
+        return a->frequency_value > b->frequency_value;
+    }
 };
+
+Node* buildHuffmanTree(const std::map<char, int>& freqencies);
+
+void generateCodes(Node* root, std::string currentCode, std::map<char, std::string>& huffmanCodes);
+
+void deleteTree(Node* root);
 
 #endif
