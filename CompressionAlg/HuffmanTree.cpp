@@ -47,11 +47,24 @@ Node* buildHuffmanTree(const std::map<char, int>& frequencies){
 
 void generateCodes(Node* root, std::string currentCode, std::map<char, std::string>& huffmanCodes){
     if(root->left == nullptr && root->right == nullptr){
-        huffmanCodes[root->character_value, root->frequency_value];
+        huffmanCodes[root->character_value] = currentCode;
         return;
     } else {
-        while(root->left != nullptr){
-            
+        if(root->left != nullptr){
+            generateCodes(root->left, currentCode + '0', huffmanCodes);
         }
+        if(root->right != nullptr){
+            generateCodes(root->right, currentCode + '1', huffmanCodes);
+        }
+    }
+}
+
+void deleteTree(Node* root){
+    if(root == nullptr){
+        return;
+    } else {
+        deleteTree(root->left);
+        deleteTree(root->right);
+        delete(root);
     }
 }
