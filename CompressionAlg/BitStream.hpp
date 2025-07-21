@@ -10,7 +10,7 @@ class BitWriter {
         void flush();
 
     private:
-        std::ofstream& outputStream;
+        std::ofstream* outputStream;
         unsigned char buffer;
         int bitCount;
 
