@@ -36,6 +36,12 @@ BitReader::BitReader(std::ifstream* inputStreamPtr){
 
 char BitReader::readBit(){
     if(this->bitCount == 8){
+        this->inputStream->get(reinterpret_cast<char&>(this->buffer));        
+
+        if (!this->inputStream->good()) {
+            return EOF;
+        }
         
+        this->bitCount = 0;
     }
 }
