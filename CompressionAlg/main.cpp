@@ -37,6 +37,17 @@ int main(int argc, char* argv[]) {
         int uniqueCharCount = frequencies.size();
         outFile.write(reinterpret_cast<const char*>(&uniqueCharCount), sizeof(int));
 
+        for (auto const& pair : frequencies) {
+            char char_value = pair.first;
+            int freq_value = pair.second;
+
+            outFile.put(char_value);
+
+            outFile.write(reinterpret_cast<const char*>(&freq_value), sizeof(int));
+        }
+
+        BitWriter bitWriter(&outFile);
+
     }
 
     return 0;
