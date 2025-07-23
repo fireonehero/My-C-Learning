@@ -33,6 +33,8 @@ struct CompareNode {
     }
 };
 
+std::map<char, int> getFrequencies(const std::string& filename);
+
 Node* buildHuffmanTree(const std::map<char, int>& freqencies);
 
 void generateCodes(Node* root, std::string currentCode, std::map<char, std::string>& huffmanCodes);
