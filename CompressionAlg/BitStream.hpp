@@ -19,7 +19,7 @@ class BitWriter {
 class BitReader {
     public:
         BitReader(std::ifstream* inputStream);
-        char readBit();
+        int readBit();
     private:
         std::ifstream* inputStream;
         unsigned char buffer;

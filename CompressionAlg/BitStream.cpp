@@ -27,21 +27,29 @@ void BitWriter::flush(){
     }
 }
 
-
 BitReader::BitReader(std::ifstream* inputStreamPtr){
     this->inputStream = inputStreamPtr;
     this->buffer = 0;
     this->bitCount = 8;
 }
 
-char BitReader::readBit(){
+int BitReader::readBit(){
+    int bit;
+    
     if(this->bitCount == 8){
         this->inputStream->get(reinterpret_cast<char&>(this->buffer));        
 
         if (!this->inputStream->good()) {
             return EOF;
         }
-        
+
         this->bitCount = 0;
     }
+
+    bit = (this->buffer >> (7 - this->bitCount)) & 1;
+
+    this->bitCount += 1;
+
+    return bit;
+
 }
